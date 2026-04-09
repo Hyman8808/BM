@@ -1,0 +1,1061 @@
+文件标识：
+TuringOS-Fingertip-V1.0
+系统版本
+OpenSocket
+作 者：
+段亚骏
+完成日期：
+2021年5月25日
+文档版本号
+修订日期
+修订原因
+修订人
+V1.0
+2021.5.25
+创建文档
+段亚骏
+指尖查词接口协议
+ 
+ 
+ 
+ 
+ 
+ 
+文档状态
+ 
+ 
+ 
+文档修订记录
+ 
+协议说明
+ 
+一、请求时序图
+ 
+指尖查词请求流程:
+client
+client
+opensocket
+opensocket
+OCR
+OCR
+文本指令(例：这个字怎么读)
+技能code确认
+设备拍摄高清大图
+第一次上传低清小图
+上传图片
+返回低清小图坐标
+返回低清小图坐标
+设备用小图坐标等比例裁切高清大图
+第二次上传裁切后的图片
+上传图片
+返回指尖识别结果
+判断是否请求词典
+OCR+词典查词结果
+图片说明：
+高清大图：指设备拍摄的原图；
+低清小图：指将设备拍摄的原图等比例缩小为低清小图，竖图为320 X 240，横图为240 X 320
+（高 X 宽）；
+高清小图：指设备根据云端返回的坐标，按压缩比放大，并在高清大图中根据坐标裁切的图片；
+ 
+二、接口说明
+ 
+1.域名地址
+ 
+正式环境：ws://ws-api.turingapi.com/api/v2
+ 
+2.请求示例
+ 
+2.1 初始化请求
+ 
+2.1.1第一次请求（上传低清小图，获取坐标）
+第一次请求说明：
+⑴ 设备可拍摄高清大图，但在协议中需传入高清大图等比例压缩的小图，具体比例如下：
+竖图：以高宽320*240为基准等比例压缩；
+横图：以高宽240*320为基准等比例压缩；
+ 
+2.2.2 第二次请求（上传裁剪图片，获取指尖识别结果）
+{
+    "key": "ba05********4a48e9",
+    "timestamp": "1621866736495",
+    "data": {
+        "deviceId": "1****3",
+        "requestType": ["NLP,TTS"],
+        "nlpRequest": {
+            "content": [{
+                "data": "23bf6bf2f5284449924999fceebc194a",
+                "type": 1
+            }],
+            "clientInfo": {
+                "appState": {
+                    "code": 1000634,
+                    "operateState": 1100
+                },
+                "robotSkill": {
+                    "1000634": {
+                        "cameraId": 10
+                    }
+                }
+            }
+        },
+        "binarysState": {
+            "openBinarysId": "23bf6bf2f5284449924999fceebc194a"
+        }
+    }
+}
+{
+    "key": "ba05********34a48e9",
+    "timestamp": "1621866736495",
+    "data": {
+        "deviceId": "1****3",
+        "requestType": ["NLP,TTS"],
+        "nlpRequest": {
+第二次请求说明：
+⑴ 获取云端返回的压缩图坐标，等比例换算到设备拍摄的高清大图上裁切图片
+⑵ 在zoomScale字段中传入图片缩放比（缩放比计算公式：如高清大图分辨率为2560 X 1920，等
+比例缩放为320 X 240，则2560 ÷ 320 = 缩放比为8）
+⑶ 上传设备拍的高清大图，获取云端返回的指尖识别结果
+ 
+2.2 上传图片数据
+ 
+初始化成功后，上传需要识别的图片二进制数据；
+（注：每段传输数据小于1024*8 byte，每次上传图片的间隔不超过10S，单次上传时间不超过60
+秒）
+ 
+2.3 上报图片结束标识
+ 
+ 
+            "content": [{
+                "data": "23bf6bf2f5284449924999fceebc194a",
+                "type": 1
+            }],
+            "clientInfo": {
+                "appState": {
+                    "code": 1000634,
+                    "operateState": 2100
+                },
+                "robotSkill": {
+                    "1000634": {
+                        "cameraId": 10,
+                        "zoomScale": 5
+                    }
+                }
+            }
+        },
+        "binarysState": {
+            "openBinarysId": "23bf6bf2f5284449924999fceebc194a"
+        }
+    }
+}
+{
+    "key": "ba************4a48e9",
+    "timestamp": "1621866736495",
+    "data": {
+        "binarysState": {
+            "openBinarysId": "23bf6bf2f5284449924999fceebc194a"
+        }
+    }
+}
+参数
+类型
+是否必填
+说明
+key
+String
+Y
+apiKey，需官网申请
+timestamp
+String
+Y
+时间戳
+data
+Json
+Y
+配置信息
+参数
+类型
+是否
+必须
+说明
+deviceId
+String
+Y
+用户设备Id: 由字母或数字组成，其他字符可能导致部分功
+能错误，长度等于16位
+requestType
+Array
+Y
+该次请求需要请求的内容：1:NLP，2:TTS
+nlpRequest
+Json
+Y
+nlp内容请求信息
+binarysState
+Json
+N
+二进制参数上传状态
+参数
+类型
+是否必填
+说明
+data
+String
+Y
+当type=0，可直接输入文本内容
+当type=其他值，需输入二进制参数：32位字符串(UUID)
+type
+int
+N
+输入类型:
+type=0 为文本请求（默认）
+type=1 为图片请求
+type=2 为ASR请求
+type=5 为口语评测
+参数
+类型
+是否必填
+说明
+appState
+Json
+N
+客户端状态
+robotSkill
+Json
+N
+用户应用自定义参数
+3.请求参数说明
+ 
+ 
+data字段说明 
+ 
+nlpRequest - content字段说明
+注意:
+Socket的二进制参数输入，都需要初始化时在nlpRequest-content中提前申明，并将代表该二进制
+参数ID赋值给nlpRequest-content-data；
+32位字符串(UUID)：自己生成一个32位的唯一值进行上传就可以，主要用于向云端告知要上传的
+文件；
+ 
+nlpRequest - ClientInfo 字段说明
+参数
+类型
+是否必填
+说明
+code
+int
+Y
+应用code
+operateState
+int
+Y
+1100为第一轮请求
+2100为第二轮请求
+1050为语音查题指令（暂不支持图片输入）
+参数
+类型
+是否必填
+说明
+1000634
+Json
+N
+应用code
+[1000634]为指尖查词功能
+参数
+类型
+是否必填
+说明
+cameraId
+Int
+Y
+摄像头ID（需标定摄像头后使用）
+zoomScale
+Float
+Y
+低清小图与高清大图的缩放比例
+参数
+类型
+是否必
+须
+说明
+openBinarysId
+String
+N
+将要上传的文件参数：32位字符串
+（该值与nlpRequest-content-data字段中的UUID
+一致）
+completeBinarysId
+String
+Y
+已完成上传的文件参数：32位字符串
+（该值与nlpRequest-content-data字段中的UUID
+一致）
+ 
+ClientInfo - AppState 字段说明
+ 
+ClientInfo - robotSkill 字段说明
+ 
+robotSkill - 1000634 字段说明
+ 
+binarysState字段说明
+ 
+4.返回示例及参数说明
+ 
+4.1 第一次请求输出结果
+ 
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+ 
+4.2 第二次请求输出结果（未开启查词时）
+ 
+ 
+4.3 第二次请求输出结果（开启查词时）
+ 
+    "nlpResponse": {
+        "intent": {
+            "code": 1000634,
+            "operateState": 2100,
+            "parameters": {
+                "data": {
+                    "width": 101,
+                    "startY": 85,
+                    "startX": 131,
+                    "height": 42
+                },
+                "debugData": {
+                    "width": 101,
+                    "startY": 85,
+                    "startX": 131,
+                    "height": 42
+                }
+            }
+        }
+    }
+}
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000634,
+            "operateState": 1010,
+            "parameters": {
+                "ocrRes": {
+                    "useIndex": 0,
+                    "content": ["灯光"]
+                }
+            }
+        }
+    }
+}
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+参数
+类型
+是否必须
+说明
+code
+int
+Y
+状态code；参考状态code列表
+globalId
+String
+Y
+请求唯一标识，用于排查日志
+message
+String
+Y
+code对应的说明
+nlpResponse
+Json
+Y
+nlp相关回复信息
+results
+Json
+Y
+输出结果集
+参数
+类型
+是否必返
+说明
+group
+array
+Y
+组类型
+0为独立输出(文本接入可忽略该参数)
+当ASR或TTS请求时，type>0会输出ASR/TTS相关内容；
+ 
+返回参数说明
+ 
+results 字段说明
+ 
+nlpResponse - intent 字段说明
+                "ocrRes": {
+                    "useIndex": 0,
+                    "content": ["灯光"]
+                },
+                "result": {
+                    "dict": "others",
+                    "info": {
+                        "translationAudio": "http://book-iot.oss-cn-
+beijing.aliyuncs.com/dictV2/2c795cc85f2e505971eac939d322ea6e.mp3?
+Expires=1619789862&OSSAccessKeyId=LTAI4FiP2jU1mtKrPSNUN8S6&Signature=kAqpjCLxYwT
+OOKgSj0f1kgidW0M%3D",
+                        "translation": "the light of a lamp",
+                        "word": "灯光"
+                    }
+                },
+                "content": "灯光"
+            }
+        },
+        "results": [{
+            "groupType": 0
+        }]
+    }
+}
+参数
+类型
+是否必返
+说明
+code
+int
+Y
+输出应用code
+operateState
+int
+Y
+应用状态
+parameters
+Json
+N
+应用参数
+参数
+类型
+是否必返
+说明
+data
+Json
+N
+图片坐标信息
+ocrRes
+Json
+N
+ocr识别结果
+result
+Json
+N
+识别结果
+content
+String
+N
+识别内容
+selectType
+string
+N
+通过文字、语音指令进入查词时的查词顺序
+charV：如输入这个字怎么读，优先查字
+wordV：如输入这个词怎么读，优先查词
+normalV：默认词典顺序
+imaErr
+int
+N
+识别异常码
+1001：为OCR识别结果为空
+参数
+类型
+是否必返
+说明
+startX
+Int
+N
+左上角x轴坐标
+startY
+Int
+N
+左上角y轴坐标
+width
+Int
+N
+矩形区域宽度
+height
+Int
+N
+矩形区域高度
+参数
+类型
+是否必返
+说明
+useIndex
+int
+N
+元素下标（查词时使用该内容）
+content
+array
+N
+ocr识别结果
+有序输出识别的文字或词语
+ 
+parameters 字段说明
+ 
+parameters  - data 字段说明
+设备获取该坐标后，需将坐标按缩放比等比例放大，在高清大图上根据坐标裁剪图片；
+ 
+parameters  - ocrRes 字段说明
+ 
+参数
+类型
+是否必返
+说明
+dict
+String
+N
+词典类型
+汉字（cn_char）
+成语（cn_idiom）
+汉词（cn_word）
+单词（en_word）
+无词典结构（others）
+info
+Json
+N
+查词结果
+parameters  - result 字段说明
+ 
+result - info 字段说明
+4.3.1 汉字
+ 
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+                "result": {
+                    "dict": "cn_char",
+                    "info": {
+                        "radicals": "人",
+                        "copy": [],
+                        "polyphone": [{
+                            "pinyin": "rén",
+                            "explanations": [
+                                "由类人猿进化而成的能制造和使用工具进行劳动、并能运用语言
+进行交际的动物",
+                                "别人，他人",
+                                "人的品质、性情、名誉"
+                            ],
+                            "combineWords": [{
+                                    "type": "start",
+                                    "word": "人类"
+                                },
+                                {
+                                    "type": "start",
+                                    "word": "人为刀俎，我为鱼肉"
+                                },
+                                {
+                                    "type": "middle",
+                                    "word": "待人热诚"
+                                },
+                                {
+                                    "type": "middle",
+                                    "word": "丢人，文如其人"
+                                }
+参数
+类型
+是否必返字段
+描述
+word
+String
+Y
+汉字
+wordAudio
+String
+Y
+汉字音频
+radicals
+String
+Y
+偏旁(部首)
+structure
+String
+Y
+结构
+polyphone
+List
+Y
+多音字
+copy
+List
+Y
+描红
+参数
+类型
+是否必返字段
+描述
+pinyin
+String
+Y
+拼音
+combineWords
+List
+Y
+组词
+explanation
+List
+Y
+释义
+字段
+类型
+是否必返
+说明
+type
+String
+N
+字在词中的位置（start、middle、end）
+word
+String
+N
+组词词语
+ 
+返回参数
+polyphone
+ 
+combineWords 
+ 
+                            ]
+                        }],
+                        "wordAudio": "http://book-iot-
+cdn.turingos.cn/202105141929/ddf389271632c33cc7a8fb550b4b6284/dictV2/465afe3c118
+589de357745a709c0441f.mp3",
+                        "word": "人",
+                        "structure": "独体结构"
+                    }
+                },
+                "content": "人"
+            }
+        }
+    }
+}
+4.3.2 成语
+ 
+ 
+返回参数
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+                "result": {
+                    "dict": "cn_idiom",
+                    "info": {
+                        "pinyin": "héng sǎo qiān jūn",
+                        "examples": [],
+                        "synonyms": [],
+                        "antonyms": [
+                            "丢盔卸甲",
+                            "溃不成军"
+                        ],
+                        "explanations": [
+                            "横扫扫荡、扫除。",
+                            "把大量敌军象扫地似地一阵子扫除掉。"
+                        ],
+                        "copy": [],
+                        "wordAudio": "http://book-iot-
+cdn.turingos.cn/202105142014/e5b5b9f46901cbaf1671fe2ec7eba37e/dictV2/d5e0caa5bab
+1d1233f41e97808373933.mp3",
+                        "word": "横扫千军"
+                    }
+                },
+                "content": "横扫千军"
+            }
+        }
+    }
+}
+参数
+类型
+是否必返字段
+描述
+word
+String
+Y
+成语
+wordAudio
+String
+Y
+成语音频
+pinyin
+String
+Y
+拼音
+explanation
+String
+Y
+释义
+copy
+List
+Y
+描红
+examples
+String
+Y
+双语例句
+synonyms
+String
+Y
+近义词
+antonyms
+String
+Y
+反义词
+参数
+类型
+是否必返字段
+描述
+en
+String
+N
+英文
+cn
+String
+N
+中文
+examples
+ 
+4.3.3 词语
+ 
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+                "result": {
+                    "dict": "cn_word",
+                    "info": {
+                        "copy": [],
+                        "polyphone": [{
+                            "pinyin": "tiān kōng",
+                            "examples": [{
+                                    "en": "",
+                                    "cn": "太阳看起来在天空以弧线运行。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "清澈的水中映出蔚蓝的天空。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "他抬起头，凝望着天空。"
+                                },
+                                {
+参数
+类型
+是否必返字段
+描述
+word
+String
+Y
+汉字
+wordAudio
+String
+Y
+词语音频
+polyphone
+List
+Y
+多音字
+copy
+List
+Y
+描红
+ 
+返回参数
+polyphone
+                                    "en": "",
+                                    "cn": "落日把天空染成金色。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "天空慢慢由蓝色变为红色。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "暴风雨来临时，天空转暗。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "云是天空中的水汽团。"
+                                },
+                                {
+                                    "en": "",
+                                    "cn": "她抬起头来，凝望着十二月份阴沉沉的天空。"
+                                }
+                            ],
+                            "synonyms": [
+                                "天外",
+                                "天际"
+                            ],
+                            "antonyms": [
+                                "大地",
+                                "地面"
+                            ],
+                            "explanation": "地面以上很高很远的广大空间：仰望～。雄鹰在～
+翱翔。"
+                        }],
+                        "wordAudio": "http://book-iot-
+cdn.turingos.cn/202105141932/b973998f14f7abd7be6662fdd2972bea/dictV2/1667312395e
+e055678d0f82aef50e25b.mp3",
+                        "word": "天空"
+                    }
+                },
+                "content": "天空"
+            }
+        }
+    }
+}
+参数
+类型
+是否必返字段
+描述
+pinyin
+String
+Y
+拼音
+examples
+String
+Y
+双语例句
+explanation
+List
+Y
+释义
+synonyms
+String
+Y
+近义词
+antonyms
+String
+Y
+反义词
+参数
+类型
+是否必返字段
+描述
+en
+String
+N
+英文
+cn
+String
+N
+中文
+example
+ 
+4.3.4 单词
+ 
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+                "result": {
+                    "dict": "en_word",
+                    "info": {
+                        "thirdSingular": "helloes",
+                        "adjective": "",
+                        "phoneticEn": "həˈloʊ",
+                        "presentParticiple": "helloing",
+                        "examples": [{
+                                "en": "Hello, it's me.",
+                                "cn": "喂，是我呀。"
+                            },
+                            {
+                                "en": "Hello, it's us back again!",
+                                "cn": "喂，是我们回来了！"
+                            },
+                            {
+                                "en": "Say hello to your husband.",
+                                "cn": "问你的丈夫好。"
+                            },
+                            {
+                                "en": "I said hello to her, but she ignored me 
+completely!",
+                                "cn": "我向她打招呼，可她根本不理我！"
+                            },
+参数
+类型
+是否必返字段
+描述
+word
+String
+Y
+单词
+wordAudio
+String
+Y
+单词音频
+explanations
+List
+Y
+词义
+phoneticEn
+String
+Y
+英音标
+phoneticUs
+String
+Y
+美音标
+adjective
+String
+Y
+形容词
+examples
+Object
+Y
+双语例句
+thirdSingular
+String
+Y
+单数
+nounPlurals
+String
+Y
+复数
+pastParticiple
+String
+Y
+过去分词
+presentParticiple
+String
+Y
+现在分词
+ 
+返回参数
+examples
+                            {
+                                "en": "She actually condescended to say hello to 
+me in the street today.",
+                                "cn": "她今天在街上竟能屈尊跟我打招呼。"
+                            }
+                        ],
+                        "phoneticUs": "həˈləʊ",
+                        "pastParticiple": "helloed",
+                        "explanations": [{
+                            "pos": "int",
+                            "meaning": "(打招呼)喂；你好"
+                        }],
+                        "wordAudio": "http://book-iot-
+cdn.turingos.cn/202105141933/456b91e4d5cdb0bee64376a40d4e5f0a/dictV2/5d41402abc4
+b2a76b9719d911017c592.mp3",
+                        "nounPlurals": "hellos",
+                        "word": "hello"
+                    }
+                },
+                "content": "Hello"
+            }
+        }
+    }
+}
+参数
+类型
+是否必返字段
+描述
+en
+String
+N
+英文
+cn
+String
+N
+中文
+参数
+类型
+是否必返字段
+描述
+pos
+String
+Y
+单词属性
+meaning
+String
+Y
+单词属性中文翻译
+参数
+类型
+是否必返字段
+描述
+word
+String
+Y
+查词内容
+explanations
+ 
+4.3.5 无查词结果
+ 
+ 
+返回参数
+ 
+{
+    "code": 200,
+    "globalId": "141033184255519001",
+    "message": "success",
+    "nlpResponse": {
+        "intent": {
+            "code": 1000633,
+            "operateState": 1012,
+            "parameters": {
+                "ocrRes": {
+                    "useIndex": 0,
+                    "content": ["灯光"]
+                },
+                "result": {
+                    "dict": "others",
+                    "info": {
+                        "word": "灯光"
+                    }
+                },
+                "content": "灯光"
+            }
+        },
+        "results": [{
+            "groupType": 0
+        }]
+    }
+}
+code
+说明
+40001
+未找到用户信息
+40002
+请求内容缺失或过长
+40004
+权限验证失败,uniqueId超限制，请求次数超限
+40005
+没有勾选应用
+40007
+请求格式错误
+40008
+uniqueId不合法
+5.错误码
+ 

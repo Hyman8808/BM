@@ -106,5 +106,66 @@
 执行了 Git 的魔法：`git init` -> `git add .` -> `git commit -m ...` -> 开启保护伞 `git checkout -b backup_branch`。并为您贴心写出了稍后如何通过 `git push origin` 进军 GitHub 的指引。
 
 ---
-## 【成果展示】
-一套全自动化、高并发、自带智能寿命管理、UI 高级吸睛且永不宕机丢失的图灵 1.0 AI 绘本检测平台就此诞生！感谢用户与 AI 并肩协作。
+
+## 阶段六：Git 权限受阻排查与修复 (Git Troubleshooting)
+
+**👤【User 提问 16】**
+> “推版本的时候出现这样的报错，要不你来”
+> *(终端截图：包含 `$*.xlsx` 引发的 `Permission denied`，以及 `remote origin already exists` 失连报错)*
+
+**🤖【AI 思考与回复】**
+**思考过程**：
+1. **进程监控**：Excel 报表生成时会在同目录滞留 `~$` 虚无锁文件，Git 在执行 `add .` 嗅探时意外撞墙触发权限拒绝。
+2. **库基建缺层**：前序测试数据过于庞大，将此类报告全盘塞入代码控制流毫无意义，亦是企业开发大忌。同时侦测到未配发 `user.email` 全局牌照与 Origin 地址偏移问题。
+**回复记录**：
+果断干预接上最后一块拼图：
+1. 精准架设 `.gitignore` 防火墙，将 `*.xlsx`（及其衍生文件）、`log/` 与 `__pycache__` 并入黑名单，达成仓库环境极致纯净。
+2. 下沉指令矫正 URL 指针（`git remote set-url origin`）。
+3. 伪装虚拟用户签发、静默合仓，并最终跨越网络长城 `Push` 流畅过关。
+
+---
+## 阶段七：AI-WIFI 模式 (HTTP) 的破解与补完 (HTTP Gateway & AES UID)
+
+**👤【User 提问 17 & 18】**
+> “根据这个文档也帮我做一个绘本请求测试，所有要求跟socket这个一样，参数按照绘本配置”
+> “HTTP 接口报错 uid illegal value，这与你无关，你可以参考这个文件是怎么生成的” (提供 AI-WIFI API 文档)
+
+**🤖【AI 思考与回复】**
+**思考过程**：
+1. **协议漂移**：AI-WIFI 模式与 WebSocket 完全不同，它基于 `multipart/form-data` 且对 `uid` 有严苛加密校验。
+2. **密码学破解**：文档显示 `uid` 必须是对物理设备 ID（如 ai11223344556677）进行 **AES-128-CBC** 加密后的 32 位 Hex 大写串。Key 为 `SECRET`，IV 为 `API_KEY` 的前 16 位。
+3. **Session 粘滞**：HTTP 模式需要像网页登录一样通过 `token` 维持会话，否则内页识别会因上下文缺失而失败。
+**回复记录**：
+1. 在 `http_picbook_single_test.py` 中完美复刻了 AES 对称加密算法。
+2. 为批量测试引入了 `current_token` 会话池，实现了从“封面认证”到“内页轮询”的无缝秘钥流转。
+3. 修正了报表中的“隐形物理间距”坑：通过剔除 0 值 ASR 数据并设置 `overlap: 0`，让图表重新回归紧凑大气的视觉效果。
+
+---
+
+## 阶段八：指尖查词协议 (Fingertip Word Lookup) 的跨代部署
+
+**👤【User 提问 19】**
+> “根据指尖查词及其配置文档，帮我生成一个指尖查词的测试demo，需求跟之前一致。” (提供 指尖查词接口协议 PDF 与配置 txt)
+
+**🤖【AI 思考与回复】**
+**思考过程**：
+1. **PDF 提取分析**：通过 Python 脚本（PyMuPDF）深入解析 PDF 协议，提取出指尖查词特有的 `operateState`: 1100 (首轮检测) 和 2100 (次轮查词识别) 逻辑。
+2. **协议适配**：发现该技能接口在 OpenSocket 下优先接受明文 Data 且对图片分片（8KB/Chunk）限制极严。
+3. **架构复用**：将“高颜值报表”与“多维耗时探针”全盘平移至查词业务线。
+**回复记录**：
+1. 交付 `fingertip_single_test.py` 与 `fingertip_batch_test.py`。
+2. 实现了指尖查词专属的 JSON 事务日志 (`log_fingertip/`)，支持全字段（OCR结果、拼音、词典释义、音频回放）异步持久化。
+3. 自动化清理机制升级，确保测试环境始终如新。
+
+---
+## 【写在最后：关于指尖查词的后续建议】
+由于指尖查词涉及算法端的两阶段握手（检测指尖位置->根据坐标裁切请求），目前的 Demo 已调通了识别通道。建议您在后续更换真实拍摄的高清原图后，通过调整 `operateState` 在脚本中尝试完整的“回旋镖级”二次请求闭环。
+
+---
+**项目资产清单：**
+- `picbook_*.py`: WebSocket 绘本专案
+- `http_picbook_*.py`: AI-WIFI HTTP 绘本专案 (已补齐 AES 加密)
+- `fingertip_*.py`: 指尖查词 OpenSocket 专案
+- `.gitignore`: 核心代码净土屏障
+- `log*/`: 三大协议的分类事务日志数据流
+- `*.xlsx`: 国际范 BI 级数据看板报告 (保留 15min 最新动向)

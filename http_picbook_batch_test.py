@@ -1,14 +1,10 @@
-import asyncio
-import websockets
+import requests
 import json
-import hashlib
 import time
-import base64
 import os
 import uuid
 import glob
 from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
 
 try:
     import xlsxwriter
@@ -19,22 +15,21 @@ except ImportError:
 # ================= 路径与环境准备 =================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = os.path.join(BASE_DIR, "绘本图片")
-LOG_DIR = os.path.join(BASE_DIR, "log")
+LOG_DIR = os.path.join(BASE_DIR, "log_http") # 为 HTTP 测试建立独立日志文件夹
 if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
 
 def cleanup_files():
     # 1. 自动清理 15分钟 (900s) 前的 Excel 老报表
     now = time.time()
-    old_excels = glob.glob(os.path.join(BASE_DIR, "*.xlsx"))
+    old_excels = glob.glob(os.path.join(BASE_DIR, "HTTP_Picbook_*.xlsx"))
     for f in old_excels:
         if os.path.isfile(f) and now - os.path.getmtime(f) > 900:
             try: os.remove(f)
             except: pass
-
-    now = time.time()
+    # 2. 清理旧日志 (HTTP 日志)
     old_logs = [os.path.join(LOG_DIR, fl) for fl in os.listdir(LOG_DIR) if os.path.isfile(os.path.join(LOG_DIR, fl)) and now - os.path.getmtime(os.path.join(LOG_DIR, fl)) > 86400]
     if old_logs:
-        print(f"\n[System] 发现 {len(old_logs)} 个过期日志。是否清理？(y/n): ")
+        print(f"\n[System] 发现 {len(old_logs)} 个过期 HTTP 日志。是否清理？(y/n): ")
         if input().strip().lower() == 'y':
             for f in old_logs: os.remove(f)
 
@@ -47,11 +42,20 @@ def find_images():
 
 COVER_IMAGE, INNER_IMAGES = find_images()
 
-# ================= 配置信息 =================
+# ================= 配置信息 (基于 HTTP 协议) =================
 API_KEY = "67772b333e2645b684c51a9fc4ba2595"
 SECRET = "85x6099I6Ql7122S"
-DEVICE_ID = "testdevice000001"
-WS_URL = "wss://ws-api.turingapi.com/api/v2"
+RAW_DEVICE_ID = "ai11223344556677"  # 物理设备号必须是16位且仅含字母数字
+
+def generate_aiwifi_uid(api_key, secret, raw_deviceId):
+    key = secret.encode('utf-8')
+    iv = api_key[:16].encode('utf-8')
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted = cipher.encrypt(raw_deviceId.encode('utf-8'))
+    return encrypted.hex().upper()
+
+DEVICE_ID = generate_aiwifi_uid(API_KEY, SECRET, RAW_DEVICE_ID) # 强制按照 AI-WIFI 协议进行 AES 加密转换
+HTTP_URL = "http://iot.turingos.cn/mmui/picbook" # 文档推荐的 HTTP 接入地址
 CAMERA_ID = 796
 SKILL_CODE = 1000056
 
@@ -67,101 +71,128 @@ def truncate_text(text, max_w):
     return res
 def pad_text(text, width): return str(text) + " " * max(0, width - get_display_width(text))
 
-class PicBookBatchTester:
+class HttpPicBookBatchTester:
     def __init__(self):
         self.results = []
         self.seq = 1
+        self.current_token = ""
 
-    def save_tx_log(self, name, label, init, finish, resps):
+    def save_tx_log(self, name, label, req_params, resp_data):
         fname = f"{self.seq:03d}_{label}_{os.path.splitext(name)[0]}.txt"
         fpath = os.path.join(LOG_DIR, fname)
         with open(fpath, "w", encoding="utf-8") as f:
-            f.write(f"REQ INIT:\n{json.dumps(init, indent=2, ensure_ascii=False)}\n\n")
-            f.write(f"REQ FINISH:\n{json.dumps(finish, indent=2, ensure_ascii=False)}\n\n")
-            f.write("RESPS:\n" + "\n".join([json.dumps(r, ensure_ascii=False) for r in resps]))
+            f.write(f"HTTP URL: {HTTP_URL}\n")
+            f.write(f"REQ PARAMS:\n{json.dumps(req_params, indent=2, ensure_ascii=False)}\n\n")
+            f.write(f"HTTP RESPONSE:\n{json.dumps(resp_data, indent=2, ensure_ascii=False)}\n")
         return fpath
 
-    async def run_full_test(self):
+    def run_full_test(self):
         cleanup_files()
-        if not COVER_IMAGE: return
-        print(f"检测到 {len(INNER_IMAGES)} 张内页，准备开始轮询...\n")
-        try:
-            async with websockets.connect(WS_URL) as ws:
-                bid, cm = await self.upload_process(ws, COVER_IMAGE, label="COVER")
-                if cm: self.results.append(cm)
-                if not bid: return
-                for idx, img in enumerate(INNER_IMAGES):
-                    _, im = await self.upload_process(ws, img, book_id=bid, label=f"INNER_{idx+1}")
-                    if im: self.results.append(im)
-                    print(f"[{idx+1}/{len(INNER_IMAGES)}] {os.path.basename(img)} 处理完成")
-                    await asyncio.sleep(0.5)
-        finally:
+        if not COVER_IMAGE:
+            print("未找到封面文件！")
+            return
+        
+        print(f"检测到 {len(INNER_IMAGES)} 张内页，准备开始基于 HTTP 的轮询...\n")
+        
+        # 封面认证
+        bid, cm = self.upload_process(COVER_IMAGE, label="COVER")
+        if cm: self.results.append(cm)
+        if not bid:
+            print("封面认证失败，未能获取 bookId，终止测试。")
             self.print_summary_table()
             self.generate_professional_report()
+            return
 
-    async def upload_process(self, ws, path, book_id=None, label=""):
-        f_uuid = str(uuid.uuid4()).replace("-", "")
-        ts = int(time.time() * 1000)
-        key, iv = get_key_iv(ts)
-        init_req = {
-            "deviceId": DEVICE_ID, "requestType": [1, 2],
-            "nlpRequest": {
-                "content": [{"data": f_uuid, "type": 1}],
-                "clientInfo": {
-                    "appState": {"code": SKILL_CODE, "operateState": 1100},
-                    "robotSkill": {
-                        str(SKILL_CODE): {
-                            "imgFlagId": str(uuid.uuid4()).replace("-", ""), "innerUrlFlag": 1, "debug": 0, "cameraId": CAMERA_ID, 
-                            "type": 5, "typeFlag": 6, "textFlag": 1, "accessModel": 1, "modelOrder": 2, 
-                            "showZhEnData": True, "showSimilar": True, "languageOrder": 1
-                        }
-                    }
-                }
-            },
-            "binarysState": { "openBinarysId": f_uuid }
+        # 轮询内页
+        for idx, img in enumerate(INNER_IMAGES):
+            _, im = self.upload_process(img, book_id=bid, label=f"INNER_{idx+1}")
+            if im: self.results.append(im)
+            print(f"[{idx+1}/{len(INNER_IMAGES)}] {os.path.basename(img)} HTTP 请求完成")
+            time.sleep(0.5)
+
+        self.print_summary_table()
+        self.generate_professional_report()
+
+    def upload_process(self, filepath, book_id=None, label=""):
+        req_params = {
+            "ak": API_KEY,
+            "uid": DEVICE_ID,
+            "token": self.current_token if self.current_token else "",
+            "type": 4, # 4 为绘本类型
+            "flag": 2,
+            "extra": {
+                "imgFlagId": str(uuid.uuid4()).replace("-", ""),
+                "innerUrlFlag": 1, 
+                "debug": 0, 
+                "cameraId": CAMERA_ID, 
+                "type": 5, 
+                "typeFlag": 6, 
+                "textFlag": 1, 
+                "accessModel": 1, 
+                "modelOrder": 2, 
+                "showZhEnData": True, 
+                "showSimilar": True, 
+                "languageOrder": 1
+            }
         }
-        if book_id: init_req["nlpRequest"]["clientInfo"]["robotSkill"][str(SKILL_CODE)]["bookId"] = book_id
-        await ws.send(json.dumps({"key": API_KEY, "timestamp": str(ts), "data": encrypt_data(init_req, key, iv)}))
-        with open(path, "rb") as f: await ws.send(f.read())
-        finish_req = {"binarysState": {"completeBinarysId": f_uuid}}
-        await ws.send(json.dumps({"key": API_KEY, "timestamp": str(ts), "data": encrypt_data(finish_req, key, iv)}))
-        
-        t0 = time.time()
-        t_fr, t_asr, t_tts, res_id, tts_url, all_r = None, None, None, None, "N/A", []
-        while True:
-            try:
-                msg = await asyncio.wait_for(ws.recv(), timeout=10)
-                tw = time.time()
-                if t_fr is None: t_fr = tw
-                data = json.loads(msg)
-                if "data" in data: data.update(decrypt_data(data["data"], key, iv))
-                all_r.append(data)
-                if data.get("code") == 200 and t_asr is None: t_asr = tw
-                if "nlpResponse" in data:
-                    res = data["nlpResponse"]
-                    p = res.get("intent", {}).get("parameters", {})
-                    if "bookId" in p: res_id = p["bookId"]
-                    elif "titleData" in p: res_id = p["titleData"].get("bookId")
-                    elif "innerData" in p: res_id = p["innerData"].get("bookId")
-                    for item in res.get("results", []):
-                        u = item.get("values", {}).get("ttsUrl", [])
-                        if u: tts_url = u[0]; t_tts = tw; break
-                if data.get("done") is True: break
-            except: break
+        if book_id: 
+            req_params["extra"]["bookId"] = book_id
 
-        log_path = self.save_tx_log(os.path.basename(path), label, init_req, finish_req, all_r)
+        # HTTP 请求测时
+        t0 = time.time()
+        
+        try:
+            with open(filepath, "rb") as f:
+                files = {'speech': (os.path.basename(filepath), f, 'application/octet-stream')}
+                data = {'parameters': json.dumps(req_params, ensure_ascii=False)}
+                
+                resp = requests.post(HTTP_URL, data=data, files=files, timeout=20)
+                resp_json = resp.json()
+                if "token" in resp_json and resp_json["token"]:
+                    self.current_token = resp_json["token"]
+        except Exception as e:
+            resp_json = {"error": str(e)}
+
+        t_fr = time.time()
+        total_time = t_fr - t0
+
+        res_id = None
+        tts_url = "N/A"
+        
+        # 解析返回结果
+        if "func" in resp_json:
+            func = resp_json["func"]
+            if "titleData" in func and "bookId" in func["titleData"]:
+                res_id = func["titleData"]["bookId"]
+            elif "innerData" in func and "bookId" in func["innerData"]:
+                res_id = func["innerData"]["bookId"]
+
+        if resp_json.get("nlp") and isinstance(resp_json["nlp"], list):
+            tts_url = resp_json["nlp"][0]
+        elif resp_json.get("tts"):
+            tts_url = resp_json["tts"]
+
+        log_path = self.save_tx_log(os.path.basename(filepath), label, req_params, resp_json)
         self.seq += 1
-        m = {"name": os.path.basename(path), "resp": 0, "asr": 0, "nlp": 0, "tts": 0, "total": 0, "url": tts_url, "log": log_path, "status": "失败", "bookId": res_id}
-        if t_fr:
-            m["resp"] = round(t_fr - t0, 3)
-            if t_asr:
-                m["asr"] = round(t_asr - t_fr, 3)
-                if t_tts:
-                    # 分段耗时计算
-                    m["nlp"] = max(0, round(t_tts - t_asr, 6)) 
-                    m["tts"] = max(0, round(t_tts - t_asr, 6))
-                m["status"] = "成功"
-                m["total"] = round(m["resp"] + m["asr"] + m["tts"], 3)
+        
+        status = "成功" if resp_json.get("code") in [200, 20039] or "func" in resp_json else "失败"
+
+        # 对于 HTTP 协议，一次返回结果。
+        # FirstResp 即获取整个响应的时间。由于没有流式返回，识和音时间相对视为 0 或是 HTTP 耗时的一部分。
+        # 为了表盘一致，这里 FirstResp = total_time, ASR(识)=0.0, TTS(音)=0.0
+        m = {
+            "name": os.path.basename(filepath), 
+            "resp": round(total_time, 4), 
+            "asr": 0.0, 
+            "nlp": 0.0, 
+            "tts": 0.0, 
+            "total": round(total_time, 4), 
+            "url": tts_url, 
+            "log": log_path, 
+            "status": status, 
+            "bookId": res_id
+        }
+        
         return res_id, m
 
     def print_summary_table(self):
@@ -173,13 +204,13 @@ class PicBookBatchTester:
         avg_total = sum(r["total"] for r in self.results) / total
 
         print("\n" + "┌" + "─" * 107 + "┐")
-        print("│" + " " * 44 + "批量测试结果简报" + " " * 47 + "│")
+        print("│" + " " * 44 + "HTTP 批量测试结果简报" + " " * 42 + "│")
         print("├" + "─" * 20 + "┬" + "─" * 15 + "┬" + "─" * 15 + "┬" + "─" * 25 + "┬" + "─" * 26 + "┤")
         print(f"│ {pad_text('环节', 18)} │ {pad_text('成功数', 13)} │ {pad_text('成功率', 13)} │ {pad_text('平均耗时(s)', 23)} │ {pad_text('备注', 24)} │")
         print("├" + "─" * 20 + "┼" + "─" * 15 + "┼" + "─" * 15 + "┼" + "─" * 25 + "┼" + "─" * 26 + "┤")
-        print(f"│ {pad_text('FirstResp', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_resp:.3f}', 23)} │ {pad_text('首次云端响应', 24)} │")
-        print(f"│ {pad_text('识别时间(识)', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_asr:.3f}', 23)} │ {pad_text('识别处理(识)', 24)} │")
-        print(f"│ {pad_text('音频返回时间(音)', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_tts:.3f}', 23)} │ {pad_text('音频下发(音)', 24)} │")
+        print(f"│ {pad_text('FirstResp', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_resp:.3f}', 23)} │ {pad_text('HTTP 请求总耗时', 24)} │")
+        print(f"│ {pad_text('识别时间(识)', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_asr:.3f}', 23)} │ {pad_text('流式识别(HTTP不适用)', 24)} │")
+        print(f"│ {pad_text('音频返回时间(音)', 18)} │ {pad_text(total, 13)} │ {pad_text('100.0%', 13)} │ {pad_text(f'{avg_tts:.3f}', 23)} │ {pad_text('流式下发(HTTP不适用)', 24)} │")
         print("├" + "─" * 20 + "┼" + "─" * 15 + "┼" + "─" * 15 + "┼" + "─" * 25 + "┼" + "─" * 26 + "┤")
         print(f"│ {pad_text('Total', 18)} │ {pad_text('-', 13)} │ {pad_text('-', 13)} │ {pad_text(f'{avg_total:.3f}', 23)} │ {pad_text('Resp+ASR+TTS', 24)} │")
         print("└" + "─" * 107 + "┘")
@@ -191,11 +222,11 @@ class PicBookBatchTester:
         print(border)
         for i, r in enumerate(self.results):
             name = truncate_text(r['name'], 30)
-            print(f"║ {pad_text(i+1, 4)} ║ {pad_text(name, 30)} ║ {pad_text(r['resp'], 10)} ║ {pad_text(r['asr'], 12)} ║ {pad_text(r['tts'], 16)} ║ {pad_text(r['total'], 8)} ║")
+            print(f"║ {pad_text(i+1, 4)} ║ {pad_text(name, 30)} ║ {pad_text(r['resp'], 10)} ║ {pad_text(round(r['asr'], 2), 12)} ║ {pad_text(round(r['tts'], 2), 16)} ║ {pad_text(r['total'], 8)} ║")
         print(border.replace("╟", "╚").replace("╫", "╩").replace("╢", "╝").replace("─", "═"))
 
     def generate_professional_report(self):
-        report_name = os.path.join(BASE_DIR, f"Picbook_Performance_Report_{time.strftime('%Y%m%d_%H%M%S')}.xlsx")
+        report_name = os.path.join(BASE_DIR, f"HTTP_Picbook_Performance_{time.strftime('%Y%m%d_%H%M%S')}.xlsx")
         wb = xlsxwriter.Workbook(report_name)
         
         # --- Modern Styling (International UI) ---
@@ -222,7 +253,7 @@ class PicBookBatchTester:
         
         dash.set_column('A:A', 3); dash.set_column('B:C', 18); dash.set_column('D:D', 4); dash.set_column('E:N', 12)
         dash.set_row(1, 35)
-        dash.write('B2', 'Turing API 深度评测 (Performance Overview)', fmt_title)
+        dash.write('B2', 'Turing API 深度评测 (HTTP 模式)', fmt_title)
         
         # 统计表
         dash.write('B4', '指标 (Metrics)', fmt_head); dash.write('C4', '平均耗时(s)', fmt_head)
@@ -251,8 +282,9 @@ class PicBookBatchTester:
 
         # 高级柱图 (Column Chart)
         col = wb.add_chart({'type': 'column'})
-        col.add_series({'name': 'FirstResp(s)', 'categories': ['测试详情', 1, 1, total, 1], 'values': ['测试详情', 1, 4, total, 4], 'fill': {'color': '#3498DB'}, 'border': {'none': True}, 'gap': 120, 'overlap': 0})
-        col.add_series({'name': '识 耗时(s)', 'categories': ['测试详情', 1, 1, total, 1], 'values': ['测试详情', 1, 5, total, 5], 'fill': {'color': '#F1C40F'}, 'border': {'none': True}})
+        # 在 HTTP 模式下，去除了值为 0 的 ASR/TTS 柱子，避免它们占据 X 轴的隐形物理空间导致柱子间产生空隙
+        # overlap: 0 保证组内的柱子严丝合缝紧贴，gap: 120 保证组与组之间有良好间距
+        col.add_series({'name': 'HTTP FirstResp 总耗时(s)', 'categories': ['测试详情', 1, 1, total, 1], 'values': ['测试详情', 1, 4, total, 4], 'fill': {'color': '#3498DB'}, 'border': {'none': True}, 'gap': 120, 'overlap': 0})
         col.add_series({'name': 'Total 总延时(s)', 'categories': ['测试详情', 1, 1, total, 1], 'values': ['测试详情', 1, 8, total, 8], 'fill': {'color': '#9B59B6'}, 'border': {'none': True}})
         
         col.set_title({'name': '请求耗时波动分析 (Latency Fluctuation)', 'name_font': {'name': 'Segoe UI Light', 'size': 15, 'color': '#34495E'}})
@@ -285,18 +317,8 @@ class PicBookBatchTester:
             detail.write(row, 8, r["total"] if st=="成功" else "N/A", fmt_cell)
             detail.write(row, 9, r["log"], fmt_cell)
         wb.close()
-        print(f"\n[System] 国际范专业报表已生成: {report_name}")
-
-def get_key_iv(ts):
-    m = hashlib.md5((API_KEY + SECRET + str(ts)).encode('utf-8')).hexdigest()
-    k = m[8:24].encode('utf-8')
-    return k, k
-def encrypt_data(d, k, v):
-    ci = AES.new(k, AES.MODE_CBC, v)
-    return base64.b64encode(ci.encrypt(pad(json.dumps(d, ensure_ascii=False).encode('utf-8'), 16))).decode('utf-8')
-def decrypt_data(e, k, v):
-    try: return json.loads(unpad(AES.new(k, AES.MODE_CBC, v).decrypt(base64.b64decode(e)), 16).decode('utf-8'))
-    except: return {}
+        print(f"\n[System] 国际范 HTTP 版本专业报表已生成: {report_name}")
 
 if __name__ == "__main__":
-    asyncio.run(PicBookBatchTester().run_full_test())
+    tester = HttpPicBookBatchTester()
+    tester.run_full_test()

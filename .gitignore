@@ -4,6 +4,8 @@
 
 # 忽略日志文件
 log/
+log_http/
+log_fingertip/
 
 # Python 缓存
 __pycache__/

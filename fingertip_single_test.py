@@ -4,6 +4,8 @@ import json
 import time
 import os
 import uuid
+import argparse
+import sys
 
 # ================= 路径与环境准备 =================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,13 +13,41 @@ IMAGE_DIR = os.path.join(BASE_DIR, "指尖查词图片")
 LOG_DIR = os.path.join(BASE_DIR, "log_fingertip")
 if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
 
-# ================= 配置信息 (指尖查词) =================
-API_KEY = "42fb064c66034807bbc7cd5e797e901d"
-SECRET = "Q5FJi32fvrMWL56o"
-DEVICE_ID = "testdevice000001"
-WS_URL = "wss://ws-api.turingapi.com/api/v2"
-CAMERA_ID = 1710
-SKILL_CODE = 1000634
+# ================= 配置与参数处理 =================
+def load_config():
+    config_path = os.path.join(BASE_DIR, "config_fingertip.json")
+    cfg = {
+        "API_KEY": "42fb064c66034807bbc7cd5e797e901d",
+        "SECRET": "Q5FJi32fvrMWL56o",
+        "DEVICE_ID": "testdevice000001",
+        "WS_URL": "wss://ws-api.turingapi.com/api/v2",
+        "CAMERA_ID": 1710,
+        "SKILL_CODE": 1000634
+    }
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg.update(json.load(f))
+    
+    parser = argparse.ArgumentParser(description="Turing Fingertip Single Test")
+    parser.add_argument("--ak", help="API Key")
+    parser.add_argument("--secret", help="Secret Key")
+    parser.add_argument("--uid", help="Device ID")
+    parser.add_argument("--url", help="WebSocket URL")
+    args, unknown = parser.parse_known_args()
+
+    if args.ak: cfg["API_KEY"] = args.ak
+    if args.secret: cfg["SECRET"] = args.secret
+    if args.uid: cfg["DEVICE_ID"] = args.uid
+    if args.url: cfg["WS_URL"] = args.url
+    return cfg
+
+CONFIG = load_config()
+API_KEY = CONFIG["API_KEY"]
+SECRET = CONFIG["SECRET"]
+DEVICE_ID = CONFIG["DEVICE_ID"]
+WS_URL = CONFIG["WS_URL"]
+CAMERA_ID = CONFIG["CAMERA_ID"]
+SKILL_CODE = CONFIG["SKILL_CODE"]
 
 # ================= 工具函数 =================
 def pad_text(text, width):

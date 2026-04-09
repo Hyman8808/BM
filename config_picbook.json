@@ -1,0 +1,8 @@
+{
+  "API_KEY": "67772b333e2645b684c51a9fc4ba2595",
+  "SECRET": "85x6099I6Ql7122S",
+  "DEVICE_ID": "testdevice000001",
+  "WS_URL": "wss://ws-api.turingapi.com/api/v2",
+  "CAMERA_ID": 796,
+  "SKILL_CODE": 1000056
+}

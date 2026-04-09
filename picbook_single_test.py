@@ -6,6 +6,8 @@ import time
 import base64
 import os
 import uuid
+import argparse
+import sys
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
@@ -47,13 +49,44 @@ def find_images():
 
 COVER_IMAGE, INNER_IMAGES = find_images()
 
-# ================= 配置信息 =================
-API_KEY = "67772b333e2645b684c51a9fc4ba2595"
-SECRET = "85x6099I6Ql7122S"
-DEVICE_ID = "testdevice000001"
-WS_URL = "wss://ws-api.turingapi.com/api/v2"
-CAMERA_ID = 796
-SKILL_CODE = 1000056
+# ================= 配置与参数处理 =================
+def load_config():
+    config_path = os.path.join(BASE_DIR, "config_picbook.json")
+    # 默认值
+    cfg = {
+        "API_KEY": "67772b333e2645b684c51a9fc4ba2595",
+        "SECRET": "85x6099I6Ql7122S",
+        "DEVICE_ID": "testdevice000001",
+        "WS_URL": "wss://ws-api.turingapi.com/api/v2",
+        "CAMERA_ID": 796,
+        "SKILL_CODE": 1000056
+    }
+    # 加载文件
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg.update(json.load(f))
+    
+    # 命令行参数覆盖
+    parser = argparse.ArgumentParser(description="Turing Picbook Test Script")
+    parser.add_argument("--ak", help="API Key")
+    parser.add_argument("--secret", help="Secret Key")
+    parser.add_argument("--uid", help="Device ID")
+    parser.add_argument("--url", help="WebSocket URL")
+    args = parser.parse_args()
+
+    if args.ak: cfg["API_KEY"] = args.ak
+    if args.secret: cfg["SECRET"] = args.secret
+    if args.uid: cfg["DEVICE_ID"] = args.uid
+    if args.url: cfg["WS_URL"] = args.url
+    return cfg
+
+CONFIG = load_config()
+API_KEY = CONFIG["API_KEY"]
+SECRET = CONFIG["SECRET"]
+DEVICE_ID = CONFIG["DEVICE_ID"]
+WS_URL = CONFIG["WS_URL"]
+CAMERA_ID = CONFIG["CAMERA_ID"]
+SKILL_CODE = CONFIG["SKILL_CODE"]
 
 # ================= 工具函数 =================
 def get_display_width(s): return sum(2 if ord(c) > 127 else 1 for c in str(s))

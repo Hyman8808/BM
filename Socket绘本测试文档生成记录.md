@@ -7,15 +7,19 @@
 
 ## 🛠️ 快速上手指令 (Quick Start)
 
+所有测试脚本均支持从同目录下的 **JSON 配置文件** 加载默认参数，同时也支持通过 **命令行参数** 实时覆盖设置（命令行优先级最高）。
+
 ### 1. 绘本协议 (Picture Book)
+*   配置文件：`config_picbook.json` (WebSocket), `config_http.json` (HTTP)
 *   **WebSocket 批量测试**：`python picbook_batch_test.py`
-*   **WebSocket 单图测试**：`python picbook_single_test.py`
+*   **WebSocket 参数覆盖**：`python picbook_batch_test.py --ak YOUR_AK --secret YOUR_SECRET --uid YOUR_DEVICE_ID`
 *   **HTTP (AI-WIFI) 批量测试**：`python http_picbook_batch_test.py`
-*   **HTTP (AI-WIFI) 单图测试**：`python http_picbook_single_test.py`
+*   **HTTP 参数覆盖**：`python http_picbook_batch_test.py --ak YOUR_AK --secret YOUR_SECRET --uid YOUR_DEVICE_ID`
 
 ### 2. 指尖查词 (Fingertip Lookup)
-*   **批量查词测试**：`python fingertip_batch_test.py`
-*   **单图查词调试**：`python fingertip_single_test.py`
+*   配置文件：`config_fingertip.json`
+*   **批量测试**：`python fingertip_batch_test.py`
+*   **参数覆盖**：`python fingertip_batch_test.py --ak YOUR_AK --secret YOUR_SECRET --uid YOUR_DEVICE_ID`
 
 ### 3. 版本管理 (Git)
 *   **切换至最新全量分支**：`git checkout fingertip_feature`

@@ -4,6 +4,8 @@ import time
 import os
 import uuid
 import glob
+import argparse
+import sys
 from Crypto.Cipher import AES
 
 try:
@@ -42,10 +44,41 @@ def find_images():
 
 COVER_IMAGE, INNER_IMAGES = find_images()
 
-# ================= 配置信息 (基于 HTTP 协议) =================
-API_KEY = "67772b333e2645b684c51a9fc4ba2595"
-SECRET = "85x6099I6Ql7122S"
-RAW_DEVICE_ID = "ai11223344556677"  # 物理设备号必须是16位且仅含字母数字
+# ================= 配置与参数处理 =================
+def load_config():
+    config_path = os.path.join(BASE_DIR, "config_http.json")
+    cfg = {
+        "API_KEY": "67772b333e2645b684c51a9fc4ba2595",
+        "SECRET": "85x6099I6Ql7122S",
+        "RAW_DEVICE_ID": "ai11223344556677",
+        "HTTP_URL": "http://iot.turingos.cn/mmui/picbook",
+        "CAMERA_ID": 796,
+        "SKILL_CODE": 1000056
+    }
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg.update(json.load(f))
+    
+    parser = argparse.ArgumentParser(description="Turing HTTP Picbook Batch Test")
+    parser.add_argument("--ak", help="API Key")
+    parser.add_argument("--secret", help="Secret Key")
+    parser.add_argument("--uid", help="Device ID (Raw)")
+    parser.add_argument("--url", help="HTTP URL")
+    args, unknown = parser.parse_known_args()
+
+    if args.ak: cfg["API_KEY"] = args.ak
+    if args.secret: cfg["SECRET"] = args.secret
+    if args.uid: cfg["RAW_DEVICE_ID"] = args.uid
+    if args.url: cfg["HTTP_URL"] = args.url
+    return cfg
+
+CONFIG = load_config()
+API_KEY = CONFIG["API_KEY"]
+SECRET = CONFIG["SECRET"]
+RAW_DEVICE_ID = CONFIG["RAW_DEVICE_ID"]
+HTTP_URL = CONFIG["HTTP_URL"]
+CAMERA_ID = CONFIG["CAMERA_ID"]
+SKILL_CODE = CONFIG["SKILL_CODE"]
 
 def generate_aiwifi_uid(api_key, secret, raw_deviceId):
     key = secret.encode('utf-8')
@@ -55,9 +88,6 @@ def generate_aiwifi_uid(api_key, secret, raw_deviceId):
     return encrypted.hex().upper()
 
 DEVICE_ID = generate_aiwifi_uid(API_KEY, SECRET, RAW_DEVICE_ID) # 强制按照 AI-WIFI 协议进行 AES 加密转换
-HTTP_URL = "http://iot.turingos.cn/mmui/picbook" # 文档推荐的 HTTP 接入地址
-CAMERA_ID = 796
-SKILL_CODE = 1000056
 
 def get_display_width(s): return sum(2 if ord(c) > 127 else 1 for c in str(s))
 def truncate_text(text, max_w):

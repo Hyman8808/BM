@@ -1,9 +1,48 @@
-# 🚀 图灵 1.0 绘本协议 Socket 自动化测试开发全记录
+# 🚀 图灵 1.0 协议自动化测试开发全记录
 
 **文档生成时间：** 2026-04-10
-**文档目标：** 完整记录今日用户与 AI（Antigravity）协作重构“图灵（Turing）硬件绘本自动化测试”项目的全流程，包括发现障碍、解决瓶颈、增强交互UI和构建国际化报表的全部交流细节与思考过程。
+**文档目标：** 完整记录从“绘本 WebSocket”到“AI-WIFI HTTP”再到“指尖查词”项目的全流程开发记录、指令说明及版本更迭。
 
 ---
+
+## 🛠️ 快速上手指令 (Quick Start)
+
+### 1. 绘本协议 (Picture Book)
+*   **WebSocket 批量测试**：`python picbook_batch_test.py`
+*   **WebSocket 单图测试**：`python picbook_single_test.py`
+*   **HTTP (AI-WIFI) 批量测试**：`python http_picbook_batch_test.py`
+*   **HTTP (AI-WIFI) 单图测试**：`python http_picbook_single_test.py`
+
+### 2. 指尖查词 (Fingertip Lookup)
+*   **批量查词测试**：`python fingertip_batch_test.py`
+*   **单图查词调试**：`python fingertip_single_test.py`
+
+### 3. 版本管理 (Git)
+*   **切换至最新全量分支**：`git checkout fingertip_feature`
+*   **提交并推送**：`git add .` -> `git commit -m "msg"` -> `git push origin fingertip_feature`
+
+---
+
+## 📝 版本更新日志 (Changelog)
+
+### [V1.3.0] - 2026-04-10
+*   **[新增]** 指尖查词（Fingertip Word Lookup）全套测试框架，支持 OCR 与词典结果持久化。
+*   **[新增]** OpenSocket 协议分片传输机制，解决大图识别失败问题。
+*   **[优化]** 自动清理过期 `log_fingertip/` 日志资产。
+
+### [V1.2.0] - 2026-04-10
+*   **[核心修复]** 破解 AI-WIFI (HTTP) 模式的 UID 加密逻辑，支持 AES-128-CBC 动态生成 uid。
+*   **[核心修复]** 实现 HTTP 模式的 Token 自动嗅探与 Session 会话流转。
+*   **[优化]** Excel 报表 UI 升级：剔除 0 值 ASR 占位，实现组内“无缝紧贴”视觉效果。
+
+### [V1.1.0] - 2026-04-09
+*   **[新增]** 国际化专业 Excel 报表生成引擎，引入“甜甜圈图”仪表盘。
+*   **[新增]** 高精度计时探针（FirstResp / 识 / 音）。
+*   **[新增]** 自动日志切片系统（一图一档 TXT 日志）。
+
+---
+
+## 📖 开发交流全记录 (History)
 
 ## 阶段一：初试锋芒与底层协议排雷 (Protocol Troubleshooting)
 

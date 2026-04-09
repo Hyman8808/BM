@@ -1,0 +1,7 @@
+cameraId: 1710
+
+Apikey:
+42fb064c66034807bbc7cd5e797e901d
+secret:Q5FJi32fvrMWL56o
+
+设备号：testdevice000001 或者 testdevice000002

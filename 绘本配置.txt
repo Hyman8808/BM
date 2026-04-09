@@ -1,0 +1,8 @@
+cameraID：796
+
+绘本1.0协议（AIWIFI）：https://docs.turingos.cn/1.0/picbook/aiwifi-accessmode/
+绘本socket协议：见文档
+
+Apikey:67772b333e2645b684c51a9fc4ba2595
+Secret:85x6099I6Ql7122S
+设备号：testdevice000001 或者 testdevice000002

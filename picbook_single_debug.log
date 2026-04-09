@@ -1,0 +1,85 @@
+
+==================== 23:13:20 REQUEST ====================
+{
+  "deviceId": "testdevice000001",
+  "requestType": [
+    1,
+    2
+  ],
+  "nlpRequest": {
+    "content": [
+      {
+        "data": "000812ed4e0d41a0bd91afc9eea19a1e",
+        "type": 1
+      }
+    ],
+    "clientInfo": {
+      "appState": {
+        "code": 1000056,
+        "operateState": 1100
+      },
+      "robotSkill": {
+        "1000056": {
+          "imgFlagId": "9e182a3db9b0420ca1993abc9358c664",
+          "innerUrlFlag": 1,
+          "debug": 0,
+          "cameraId": 796,
+          "type": 5,
+          "typeFlag": 6,
+          "textFlag": 1,
+          "accessModel": 1,
+          "modelOrder": 2,
+          "showZhEnData": true,
+          "showSimilar": true,
+          "languageOrder": 1
+        }
+      }
+    }
+  },
+  "binarysState": {
+    "openBinarysId": "000812ed4e0d41a0bd91afc9eea19a1e"
+  }
+}
+
+==================== 23:13:21 REQUEST ====================
+{
+  "deviceId": "testdevice000001",
+  "requestType": [
+    1,
+    2
+  ],
+  "nlpRequest": {
+    "content": [
+      {
+        "data": "3a3c809303fc409a8bb558cf6d249541",
+        "type": 1
+      }
+    ],
+    "clientInfo": {
+      "appState": {
+        "code": 1000056,
+        "operateState": 1100
+      },
+      "robotSkill": {
+        "1000056": {
+          "imgFlagId": "b01e70b34e424c8db4ddef488ad03fea",
+          "innerUrlFlag": 1,
+          "debug": 0,
+          "cameraId": 796,
+          "type": 5,
+          "typeFlag": 6,
+          "textFlag": 1,
+          "accessModel": 1,
+          "modelOrder": 2,
+          "showZhEnData": true,
+          "showSimilar": true,
+          "languageOrder": 1,
+          "bookId": 56508
+        }
+      }
+    }
+  },
+  "binarysState": {
+    "openBinarysId": "3a3c809303fc409a8bb558cf6d249541"
+  }
+}

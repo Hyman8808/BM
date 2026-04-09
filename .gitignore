@@ -1,0 +1,10 @@
+# 忽略测试生成的 Excel 报表及临时锁文件
+*.xlsx
+~$*.xlsx
+
+# 忽略日志文件
+log/
+
+# Python 缓存
+__pycache__/
+*.pyc

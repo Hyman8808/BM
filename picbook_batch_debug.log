@@ -1,0 +1,66 @@
+[23:11:53] COVER RESPONSE
+{"code": 210, "done": false, "globalId": "297577676847852001", "message": "参数初始化成功"}
+[23:11:53] COVER RESPONSE
+{"code": 220, "done": false, "globalId": "297577676847852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:53] COVER RESPONSE
+{"code": 200, "done": true, "globalId": "297577676847852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"ext": {"bookEvalFlag": false}, "msg": "cover recognition succeeded", "intentCode": 200, "funcData": {"finger": 0, "ocr": 0}, "titleData": {"finger": 0, "cover": "http://universe-file-limit.turingapi.com/202604092311/3c5bc849c956d20c158c8be70d1211ca/book_image/01b167f56f404ff99c5fe997e7c8e6f2.jpg", "isChat": 0, "bookVersion": 1, "zipUrl": "http://universe-audio.tuling123.com/202604092311/6b465fdb3d5362a3900a68e2a5516446/robot_story/56508/56508.zip", "author": "Troll", "nameUrl": "http://universe-audio.tuling123.com/202604092311/9a02249a34ac2acfe12a491d7a466d67/audio/cc722022d6aa45799d0b5b488507df2a.mp3", "name": "黑影盗窃团来袭", "publisher": "二十一世纪出版社集团", "bookName": "01b167f56f404ff99c5fe997e7c8e6f2", "bookId": 56508}, "commandUrl": "http://universe-file-limit.turingapi.com/202604092311/82d2fc1ff9a14990e0efc835e8208e19/hint/success-1.mp3", "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}, "results": [{"groupType": 0, "resultType": "text", "values": {"ttsUrl": ["http://universe-file-limit.turingapi.com/202604092311/82d2fc1ff9a14990e0efc835e8208e19/hint/success-1.mp3"], "text": "我要和你一起读故事了"}}]}}
+[23:11:53] INNER_1 RESPONSE
+{"code": 210, "done": false, "globalId": "297577677335852001", "message": "参数初始化成功"}
+[23:11:53] INNER_1 RESPONSE
+{"code": 220, "done": false, "globalId": "297577677335852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:53] INNER_1 RESPONSE
+{"code": 200, "done": true, "globalId": "297577677335852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/6f61271966d5ab730793ee9d7c902985/audio/abfbfe109e6c481390474b57f83fa702.mp3", "pageNum": 33, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:54] INNER_2 RESPONSE
+{"code": 210, "done": false, "globalId": "297577678075852001", "message": "参数初始化成功"}
+[23:11:54] INNER_2 RESPONSE
+{"code": 220, "done": false, "globalId": "297577678075852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:54] INNER_2 RESPONSE
+{"code": 200, "done": true, "globalId": "297577678075852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/7a993d16ab1b2c2519179b41cadae6d0/audio/1dac162015a14820953407ab0455fa3e.mp3", "pageNum": 34, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:55] INNER_3 RESPONSE
+{"code": 210, "done": false, "globalId": "297577678849852001", "message": "参数初始化成功"}
+[23:11:55] INNER_3 RESPONSE
+{"code": 220, "done": false, "globalId": "297577678849852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:55] INNER_3 RESPONSE
+{"code": 200, "done": true, "globalId": "297577678849852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 1001, "parameters": {"msg": "book no recognition ", "intentCode": 301, "funcData": {"finger": 0, "ocr": 0}, "commandUrl": "http://universe-file-limit.turingapi.com/202604092311/edf2979d9c7ac577748e8c257679ae4c/hint/error-7.mp3"}}, "results": [{"groupType": 0, "resultType": "text", "values": {"ttsUrl": ["http://universe-file-limit.turingapi.com/202604092311/edf2979d9c7ac577748e8c257679ae4c/hint/error-7.mp3"], "text": "我们来看下一页吧"}}]}}
+[23:11:55] INNER_4 RESPONSE
+{"code": 210, "done": false, "globalId": "297577679673852001", "message": "参数初始化成功"}
+[23:11:55] INNER_4 RESPONSE
+{"code": 220, "done": false, "globalId": "297577679673852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:56] INNER_4 RESPONSE
+{"code": 200, "done": true, "globalId": "297577679673852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/c1d16e21012073cf8c2408df31219541/audio/ffc2a714d82f4aea918b1ab6193dfee0.mp3", "pageNum": 36, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:56] INNER_5 RESPONSE
+{"code": 210, "done": false, "globalId": "297577680453852001", "message": "参数初始化成功"}
+[23:11:56] INNER_5 RESPONSE
+{"code": 220, "done": false, "globalId": "297577680453852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:56] INNER_5 RESPONSE
+{"code": 200, "done": true, "globalId": "297577680453852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/b75c294bb13e8f7ec18a1eea488a6d70/audio/5120cef749d947b8b5e86a7c60855408.mp3", "pageNum": 37, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:57] INNER_6 RESPONSE
+{"code": 210, "done": false, "globalId": "297577681253852001", "message": "参数初始化成功"}
+[23:11:57] INNER_6 RESPONSE
+{"code": 220, "done": false, "globalId": "297577681253852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:57] INNER_6 RESPONSE
+{"code": 200, "done": true, "globalId": "297577681253852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/404528456e2f568387cf20985c63e53e/audio/0e4491bc645c49b8ba84120e325e773e.mp3", "pageNum": 38, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:58] INNER_7 RESPONSE
+{"code": 210, "done": false, "globalId": "297577681981852001", "message": "参数初始化成功"}
+[23:11:58] INNER_7 RESPONSE
+{"code": 220, "done": false, "globalId": "297577681981852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:58] INNER_7 RESPONSE
+{"code": 200, "done": true, "globalId": "297577681981852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/f459bbc161c87017dd9a4a246aed0a0a/audio/7eb26c3f059c45e9b3a5a5fad5b4bbe3.mp3", "pageNum": 39, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:58] INNER_8 RESPONSE
+{"code": 210, "done": false, "globalId": "297577682747852001", "message": "参数初始化成功"}
+[23:11:58] INNER_8 RESPONSE
+{"code": 220, "done": false, "globalId": "297577682747852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:59] INNER_8 RESPONSE
+{"code": 200, "done": true, "globalId": "297577682747852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/24470446104c481f3f1751ee518a4c90/audio/013c70663df84992b68000a61423d36d.mp3", "pageNum": 40, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:11:59] INNER_9 RESPONSE
+{"code": 210, "done": false, "globalId": "297577683477852001", "message": "参数初始化成功"}
+[23:11:59] INNER_9 RESPONSE
+{"code": 220, "done": false, "globalId": "297577683477852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:11:59] INNER_9 RESPONSE
+{"code": 200, "done": true, "globalId": "297577683477852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092311/70a067be323ab88b484faa1c1cb0dc4f/audio/5844ac21319f4c56bb5187bc6fe842dd.mp3", "pageNum": 41, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
+[23:12:00] INNER_10 RESPONSE
+{"code": 210, "done": false, "globalId": "297577684241852001", "message": "参数初始化成功"}
+[23:12:00] INNER_10 RESPONSE
+{"code": 220, "done": false, "globalId": "297577684241852001", "message": "参数上传完成，正在请求nlp/tts"}
+[23:12:00] INNER_10 RESPONSE
+{"code": 200, "done": true, "globalId": "297577684241852001", "message": "success", "nlpResponse": {"intent": {"code": 1000056, "operateState": 2000, "parameters": {"innerData": {"pageUrl": "http://universe-audio.tuling123.com/202604092312/444a461851e95c123d36a4ae43099af7/audio/750864cb18904501a9aedc36d27453f4.mp3", "pageNum": 42, "bookId": 56508}, "msg": "inner page recognition succeeded", "intentCode": 201, "funcData": {"finger": 0, "ocr": 0}, "bookSign": "90bfbdf4580349ab85a835d09a08952d"}}}}
